@@ -58,7 +58,7 @@ it in the project folder before running the scripts.
 ```bash
 python iot_preprocess.py
 python iot_inject.py
-python iot_expanded_analysis.py     # main 60-device analysis (pooled, by fault type)
+python iot_expanded_analysis.py     
 python sensitivity.py
 python sensitivity_plot.py
 python f1_60.py
