@@ -1,57 +1,71 @@
-# Comparative Analysis of Anomaly Detection Techniques for Low-Energy IoT Devices in Smart Home Environments
+# Comparative Analysis of Anomaly Detection Techniques for Low-Power IoT Devices in Smart Homes
 
 This repository contains the code for comparing four
 machine-learning techniques for detecting anomalous energy consumption in
 individual IoT devices.
 
+**Research question:** *Which machine learning technique best detects anomalous
+energy consumption at the individual-device level in smart-home IoT environments?*
+
 ## Overview
 
 Four anomaly-detection techniques — **Isolation Forest**, **Autoencoder**,
-**LSTM-based prediction**, and **Local Outlier Factor (LOF)** — are compared on
-three genuine IoT devices of differing power levels: a smart plug, a
-thermostat, and a motion sensor.
+**LSTM-based prediction**, and **Local Outlier Factor (LOF)** — are compared
+across **60 IoT devices** of three types (smart plugs, thermostats, and motion
+sensors) spanning a range of power levels.
 
 Because no public dataset combines real IoT devices, per-device power readings,
-and labelled energy-consumption anomalies, controlled synthetic faults
-(spikes, drops, and gradual drift) are injected into the devices' real power
-signals at known locations. These known locations serve as ground truth,
-enabling evaluation with precision, recall, and F1-score.
+and labelled energy-consumption anomalies, three types of controlled fault —
+**spikes, drops, and gradual drift** — are injected into the devices' real power
+signals at known locations. These known locations serve as ground truth, and the
+results are pooled across all devices and analysed **by fault type**.
+
+## Main findings
+
+- **Local Outlier Factor and Isolation Forest** achieved the highest detection
+  performance; the **Autoencoder** was competitive but slightly and significantly
+  behind; the **LSTM-based** method was clearly weakest. Differences were
+  confirmed with **McNemar's statistical test** across 60 devices.
+- **Detection difficulty is governed by the fault type, not the device.** Drop
+  faults are detected almost perfectly, spike faults are detected well (except by
+  the LSTM-based method), and gradual drift faults are difficult for all
+  techniques.
 
 ## Dataset
 
-The study uses the **HomePulse: Smart Home IoT Sensor Dataset** (Kaggle, CC0 license):
+The study uses the **HomePulse: Smart Home IoT Sensor Dataset** (Kaggle, CC0):
 https://www.kaggle.com/datasets/maulikgajera/homepulse-smart-home-iot-sensor-dataset
 
-The dataset's real per-device power readings are used; its native anomaly label
-(which relates to network/security events, not energy) is not used. Download the
-CSV and place it in the project folder before running the scripts.
+Only the real per-device power readings are used; the dataset's native anomaly
+label (network/security events) is not used. The dataset is **not included** in
+this repository due to its size — download the CSV from the link above and place
+it in the project folder before running the scripts.
 
 ## Repository structure
 
 | Script | Stage | Description |
 |--------|-------|-------------|
-| `iot_preprocess.py` | 1. Preprocessing | Selects one representative device per type and saves clean per-device CSVs |
-| `iot_inject.py` | 2. Fault injection | Injects spike/drop/drift faults at known locations; saves `is_fault` ground truth |
-| `iot_models_metrics.py` | 3. Detection + metrics | Runs the four techniques and computes precision/recall/F1 and confusion matrices |
-| `iot_plots.py` | 4. Visualization | Generates the injected-signal figure and the F1 comparison chart |
-| `sensitivity.py` | 5. Sensitivity analysis | Varies key parameters and reports their effect on F1-score |
-| `sensitivity_plot.py` | 5. Sensitivity figure | Plots F1 vs. parameter values |
+| `iot_preprocess.py` | Preprocessing | Filters devices by type and saves per-device CSVs |
+| `iot_inject.py` | Fault injection | Injects spike/drop/drift faults at known locations; records `is_fault` and fault type |
+| `iot_models_metrics.py` | Detection + metrics | Runs the four techniques and computes precision/recall/F1 |
+| `sensitivity.py`, `sensitivity_plot.py` | Sensitivity analysis | Varies key parameters and plots F1 vs. parameter value |
+| `iot_expanded_analysis.py` | Main analysis | Runs all 60 devices, pools results by fault type, runs McNemar's test |
+| `iot_plots.py` | Figures | Generates the injected-signal figure |
+| `f1_60.py`, `perfault_60.py` | Figures | Generate the 60-device F1 and per-fault-type figures |
 
 ## How to run
-
-Run the scripts in order:
 
 ```bash
 python iot_preprocess.py
 python iot_inject.py
-python iot_models_metrics.py
-python iot_plots.py
+python iot_expanded_analysis.py     # main 60-device analysis (pooled, by fault type)
 python sensitivity.py
 python sensitivity_plot.py
+python f1_60.py
+python perfault_60.py
 ```
 
-Before running, set the folder path at the top of each script to the location
-of the dataset and outputs on your machine.
+Set the dataset/folder path at the top of each script to its location on your machine.
 
 ## Methods and parameters
 
@@ -59,33 +73,21 @@ of the dataset and outputs on your machine.
 |-----------|--------|--------------|
 | Isolation Forest | Isolation-based | contamination = 0.027 |
 | Local Outlier Factor | Density-based | n_neighbors = 35, contamination = 0.027 |
-| LSTM-based prediction | Prediction-based | weighted moving average, window = 12 |
 | Autoencoder | Reconstruction-based | MLP (8-4-8), trained on 80% of the data |
+| LSTM-based prediction | Prediction-based | weighted moving average, window = 12 |
 
-Faults are injected at a target rate of ~2% using a fixed random seed (42) for
-reproducibility, with magnitudes defined relative to each device's own scale to
-keep the comparison unbiased across devices.
+Faults are injected at ~2% of readings using a fixed random seed (42), with
+magnitudes defined relative to each device's own scale to keep the comparison
+unbiased across devices.
 
 ## Requirements
 
-- Python 3.x
-- pandas
-- numpy
-- scikit-learn
-- matplotlib
-
-Install with:
+- Python 3.11
+- pandas, numpy, scikit-learn, scipy, matplotlib
 
 ```bash
-pip install pandas numpy scikit-learn matplotlib
+pip install pandas numpy scikit-learn scipy matplotlib
 ```
-
-## Main findings
-
-- The **Autoencoder** achieved the highest F1-score on all three devices.
-- Detection performance depended more on the **choice of technique** than on the
-  device's power level: when faults are defined relative to each device's scale,
-  low-power devices are not inherently harder to monitor than high-power ones.
 
 ## Note
 
