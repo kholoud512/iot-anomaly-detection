@@ -4,9 +4,6 @@ This repository contains the code for comparing four
 machine-learning techniques for detecting anomalous energy consumption in
 individual IoT devices.
 
-**Research question:** *Which machine learning technique best detects anomalous
-energy consumption at the individual-device level in smart-home IoT environments?*
-
 ## Overview
 
 Four anomaly-detection techniques — **Isolation Forest**, **Autoencoder**,
